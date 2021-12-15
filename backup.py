@@ -24,8 +24,9 @@ class BackUp:
             photo_url = i['sizes'][-1]['url']      
             likes = i['likes']['count']
             size = i['sizes'][-1]['type']
-            if f'{likes}.jpg' in photos_info:
-                likes = f'{likes}_{i["date"]}'
+            for x in photos_info:
+                if x["file_name"] == f'{likes}.jpg':
+                    likes = f'{likes}_{i["date"]}'
             photos_info.append({"file_name" : f'{likes}.jpg', "size" : size})
             r = requests.get(photo_url)
             with open(f'photos/{likes}.jpg', 'wb') as f:
@@ -39,11 +40,12 @@ class BackUp:
             'Content-Type': 'application/json',
             'Authorization': f'OAuth {self.token}'
         }
-        params = {'path': file, 'overwrite': 'true'}
+        params = {'path': f'photos/{file}', 'overwrite': 'true'}
         response = requests.get(upload_url, headers=headers, params=params)
         return response.json()
 
     def upload(self):
+        response = requests.put('https://cloud-api.yandex.net/v1/disk/resources', params={'path': 'photos'})
         self.get_photos(self.owner_id)
         print('Uploading photos to Yandex Disk...')
         for file in os.listdir('photos'):
